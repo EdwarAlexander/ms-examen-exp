@@ -4,6 +4,7 @@ import com.codigo.msexamenexp.aggregates.request.RequestEnterprises;
 import com.codigo.msexamenexp.aggregates.response.ResponseBase;
 import com.codigo.msexamenexp.aggregates.constants.Constants;
 import com.codigo.msexamenexp.aggregates.response.ResponseSunat;
+import com.codigo.msexamenexp.config.RedisService;
 import com.codigo.msexamenexp.entity.DocumentsTypeEntity;
 import com.codigo.msexamenexp.entity.EnterprisesEntity;
 import com.codigo.msexamenexp.entity.EnterprisesTypeEntity;
@@ -26,17 +27,20 @@ public class EnterprisesServiceImpl implements EnterprisesService {
     private final EnterprisesValidations enterprisesValidations;
     private final DocumentsTypeRepository typeRepository;
     private final Util util;
-
     private final SunatClient sunatClient;
+    private final RedisService redisService;
     @Value("${token.api.sunat}")
     private String tokenSunat;
+    @Value("${time.expiration.sunat.info}")
+    private String timeExpirationReniecInfo;
 
-    public EnterprisesServiceImpl(EnterprisesRepository enterprisesRepository, EnterprisesValidations enterprisesValidations, DocumentsTypeRepository typeRepository, Util util, SunatClient sunatClient) {
+    public EnterprisesServiceImpl(EnterprisesRepository enterprisesRepository, EnterprisesValidations enterprisesValidations, DocumentsTypeRepository typeRepository, Util util, SunatClient sunatClient, RedisService redisService) {
         this.enterprisesRepository = enterprisesRepository;
         this.enterprisesValidations = enterprisesValidations;
         this.typeRepository = typeRepository;
         this.util = util;
         this.sunatClient = sunatClient;
+        this.redisService = redisService;
     }
 
 
@@ -54,9 +58,20 @@ public class EnterprisesServiceImpl implements EnterprisesService {
 
     @Override
     public ResponseBase findOneEnterprise(String doc) {
-        EnterprisesEntity enterprisesEntity = enterprisesRepository.findByNumDocument(doc);
-        return new ResponseBase(Constants.CODE_SUCCESS,Constants.MESS_SUCCESS, Optional.of(enterprisesEntity));
-
+        String redisCache = redisService.getValueByKey(Constants.REDIS_KEY_INFO_SUNAT+doc);
+        if(redisCache != null){
+            EnterprisesEntity entityEnterprises = util.convertFromJson(redisCache, EnterprisesEntity.class);
+            return new ResponseBase(Constants.CODE_SUCCESS,Constants.MESS_SUCCESS, Optional.of(entityEnterprises));
+        } else {
+            EnterprisesEntity enterprisesEntity = enterprisesRepository.findByNumDocument(doc);
+            if (enterprisesEntity != null){
+                String redisData = util.convertToJsonEntity(enterprisesEntity);
+                redisService.saveKeyValue(Constants.REDIS_KEY_INFO_SUNAT+doc,redisData,Integer.valueOf(timeExpirationReniecInfo));
+                return new ResponseBase(Constants.CODE_SUCCESS,Constants.MESS_SUCCESS, Optional.of(enterprisesEntity));
+            } else {
+                return new ResponseBase(Constants.CODE_ERROR_DATA_NOT,Constants.MESS_NON_DATA,Optional.empty());
+            }
+        }
     }
 
     @Override
