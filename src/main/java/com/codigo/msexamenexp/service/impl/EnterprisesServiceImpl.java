@@ -7,11 +7,13 @@ import com.codigo.msexamenexp.aggregates.response.ResponseSunat;
 import com.codigo.msexamenexp.entity.DocumentsTypeEntity;
 import com.codigo.msexamenexp.entity.EnterprisesEntity;
 import com.codigo.msexamenexp.entity.EnterprisesTypeEntity;
+import com.codigo.msexamenexp.feignClient.SunatClient;
 import com.codigo.msexamenexp.repository.DocumentsTypeRepository;
 import com.codigo.msexamenexp.repository.EnterprisesRepository;
 import com.codigo.msexamenexp.service.EnterprisesService;
 import com.codigo.msexamenexp.util.EnterprisesValidations;
 import com.codigo.msexamenexp.util.Util;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -25,11 +27,16 @@ public class EnterprisesServiceImpl implements EnterprisesService {
     private final DocumentsTypeRepository typeRepository;
     private final Util util;
 
-    public EnterprisesServiceImpl(EnterprisesRepository enterprisesRepository, EnterprisesValidations enterprisesValidations, DocumentsTypeRepository typeRepository, Util util) {
+    private final SunatClient sunatClient;
+    @Value("${token.api.sunat}")
+    private String tokenSunat;
+
+    public EnterprisesServiceImpl(EnterprisesRepository enterprisesRepository, EnterprisesValidations enterprisesValidations, DocumentsTypeRepository typeRepository, Util util, SunatClient sunatClient) {
         this.enterprisesRepository = enterprisesRepository;
         this.enterprisesValidations = enterprisesValidations;
         this.typeRepository = typeRepository;
         this.util = util;
+        this.sunatClient = sunatClient;
     }
 
 
@@ -83,6 +90,14 @@ public class EnterprisesServiceImpl implements EnterprisesService {
 
     private EnterprisesEntity getEntity(RequestEnterprises requestEnterprises){
         EnterprisesEntity entity = new EnterprisesEntity();
+        entity.setNumDocument(requestEnterprises.getNumDocument());
+        ResponseSunat responseSunat = getExecutionSunat(requestEnterprises.getNumDocument());
+        if(responseSunat != null){
+            entity.setBusinessName(responseSunat.getRazonSocial());
+            entity.setTradeName(responseSunat.getRazonSocial());
+        } else {
+            return null;
+        }
         entity.setStatus(Constants.STATUS_ACTIVE);
         entity.setEnterprisesTypeEntity(getEnterprisesType(requestEnterprises));
         entity.setDocumentsTypeEntity(getDocumentsType(requestEnterprises));
@@ -122,7 +137,8 @@ public class EnterprisesServiceImpl implements EnterprisesService {
         return timestamp;
     }
     public ResponseSunat getExecutionSunat(String numero){
-
-        return null;
+        String authorization = "Bearer "+tokenSunat;
+        ResponseSunat responseSunat = sunatClient.getInfoReniec(numero, authorization);
+        return responseSunat;
     }
 }
