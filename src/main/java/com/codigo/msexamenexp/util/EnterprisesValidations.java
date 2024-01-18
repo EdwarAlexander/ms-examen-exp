@@ -45,7 +45,7 @@ public class EnterprisesValidations {
             return false;
         }
         DocumentsTypeEntity documentType = typeRepository.findByCodType(Constants.COD_TYPE_RUC);
-        if(requestEnterprises.getDocumentsTypeEntity() != Integer.valueOf(documentType.getCodType())
+        if(requestEnterprises.getDocumentsTypeEntity() != Integer.valueOf(documentType.getIdDocumentsType())
                 || requestEnterprises.getNumDocument().length() != Constants.LENGTH_RUC){
             return false;
         }

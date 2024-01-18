@@ -70,6 +70,8 @@ public class EnterprisesServiceImpl implements EnterprisesService {
 
     @Override
     public ResponseBase updateEnterprise(Integer id, RequestEnterprises requestEnterprises) {
+        boolean existsEnterprise = enterprisesRepository.existsById(id);
+        if(existsEnterprise){
             Optional<EnterprisesEntity> enterprises = enterprisesRepository.findById(id);
             boolean validationEntity = enterprisesValidations.validateInputUpdate(requestEnterprises);
             if(validationEntity){
@@ -79,7 +81,9 @@ public class EnterprisesServiceImpl implements EnterprisesService {
             }else {
                 return new ResponseBase(Constants.CODE_ERROR_DATA_INPUT,Constants.MESS_ERROR_DATA_NOT_VALID,Optional.empty());
             }
-
+        } else {
+            return new ResponseBase(Constants.CODE_ERROR_DATA_INPUT,Constants.MESS_ERROR_NOT_UPDATE,Optional.empty());
+        }
     }
 
     @Override
@@ -109,7 +113,9 @@ public class EnterprisesServiceImpl implements EnterprisesService {
     private EnterprisesEntity getEntityUpdate(RequestEnterprises requestEnterprises, EnterprisesEntity enterprisesEntity){
         enterprisesEntity.setNumDocument(requestEnterprises.getNumDocument());
         enterprisesEntity.setBusinessName(requestEnterprises.getBusinessName());
+        enterprisesEntity.setTradeName(requestEnterprises.getTradeName());
         enterprisesEntity.setEnterprisesTypeEntity(getEnterprisesType(requestEnterprises));
+        enterprisesEntity.setDocumentsTypeEntity(getDocumentsType(requestEnterprises));
         enterprisesEntity.setUserModif(Constants.AUDIT_ADMIN);
         enterprisesEntity.setDateModif(getTimestamp());
         return enterprisesEntity;
