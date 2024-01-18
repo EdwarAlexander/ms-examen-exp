@@ -82,14 +82,21 @@ public class EnterprisesServiceImpl implements EnterprisesService {
                 return new ResponseBase(Constants.CODE_ERROR_DATA_INPUT,Constants.MESS_ERROR_DATA_NOT_VALID,Optional.empty());
             }
         } else {
-            return new ResponseBase(Constants.CODE_ERROR_DATA_INPUT,Constants.MESS_ERROR_NOT_UPDATE,Optional.empty());
+            return new ResponseBase(Constants.CODE_ERROR_DATA_NOT,Constants.MESS_ERROR_NOT_UPDATE,Optional.empty());
         }
     }
 
     @Override
     public ResponseBase delete(Integer id) {
-
-    return null;
+        boolean existsEnterprise = enterprisesRepository.existsById(id);
+        if(existsEnterprise){
+            Optional<EnterprisesEntity> enterprises = enterprisesRepository.findById(id);
+            EnterprisesEntity enterprisesUpdate = getEntityDelete(enterprises.get());
+            enterprisesRepository.save(enterprisesUpdate);
+            return new ResponseBase(Constants.CODE_SUCCESS,Constants.MESS_SUCCESS,Optional.of(enterprisesUpdate));
+        } else {
+            return new ResponseBase(Constants.CODE_ERROR_DATA_NOT,Constants.MESS_ERROR_NOT_DELETE,Optional.empty());
+        }
     }
 
     private EnterprisesEntity getEntity(RequestEnterprises requestEnterprises){
@@ -121,8 +128,10 @@ public class EnterprisesServiceImpl implements EnterprisesService {
         return enterprisesEntity;
     }
     private EnterprisesEntity getEntityDelete(EnterprisesEntity enterprisesEntity){
-
-        return null;
+        enterprisesEntity.setStatus(Constants.STATUS_INACTIVE);
+        enterprisesEntity.setUserDelete(Constants.AUDIT_ADMIN);
+        enterprisesEntity.setDateDelete(getTimestamp());
+        return enterprisesEntity;
     }
 
     private EnterprisesTypeEntity getEnterprisesType(RequestEnterprises requestEnterprises){

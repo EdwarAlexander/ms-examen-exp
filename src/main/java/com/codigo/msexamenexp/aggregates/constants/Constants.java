@@ -17,6 +17,7 @@ public class Constants {
     public static final String MESS_ERROR_DATA_NOT_VALID="Error: Durante las validaciones de los Datos";
     public static final String MESS_ZERO_ROWS="No existe Registros en BD";
     public static final String MESS_ERROR_NOT_UPDATE ="Error: No se ejecuto la actualización, Empresa no Existe";
+    public static final String MESS_ERROR_NOT_DELETE ="Error: No se ejecuto la eliminación, Empresa no Existe";
 
     public static final String MESS_ERROR_NOT_UPDATE_PERSON ="Error: No se ejecuto la actualización, Persona no Existe";
     public static final String MESS_NON_DATA_RENIEC="No existe Registros en el API de RENIEC";
