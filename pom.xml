@@ -17,9 +17,9 @@
 		<java.version>17</java.version>
 		<spring-cloud.version>2022.0.4</spring-cloud.version>
 		<sonar.host.url>http://localhost:9000/</sonar.host.url>
-		<sonar.token>sqp_2cfcb4592c12b434e3edd17d3ac297f9df30caa6</sonar.token>
-		<sonar.projectKey>exa2</sonar.projectKey>
-		<sonar.projectName>exa2</sonar.projectName>
+		<sonar.token>sqp_a27571435c820697f8a4c94212a3996e3ac0b14c</sonar.token>
+		<sonar.projectKey>ms-examen-exp</sonar.projectKey>
+		<sonar.projectName>ms-examen-exp</sonar.projectName>
 
 		<!-- Exclusión de archivos -->
 		<sonar.exclusions>
@@ -124,6 +124,26 @@
 				<groupId>org.sonarsource.scanner.maven</groupId>
 				<artifactId>sonar-maven-plugin</artifactId>
 				<version>3.8.0.2131</version>
+			</plugin>
+			<!-- plugin jacoco -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.7</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

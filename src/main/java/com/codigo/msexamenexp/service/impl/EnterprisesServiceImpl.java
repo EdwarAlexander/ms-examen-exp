@@ -70,7 +70,7 @@ public class EnterprisesServiceImpl implements EnterprisesService {
             EnterprisesEntity enterprisesEntity = enterprisesRepository.findByNumDocument(doc);
             if (enterprisesEntity != null){
                 String redisData = util.convertToJsonEntity(enterprisesEntity);
-                redisService.saveKeyValue(Constants.REDIS_KEY_INFO_SUNAT+doc,redisData,Integer.valueOf(timeExpirationReniecInfo));
+                redisService.saveKeyValue(Constants.REDIS_KEY_INFO_SUNAT+doc,redisData,timeExpirationReniecInfo);
                 return new ResponseBase(Constants.CODE_SUCCESS,Constants.MESS_SUCCESS, Optional.of(enterprisesEntity));
             } else {
                 return new ResponseBase(Constants.CODE_ERROR_DATA_NOT,Constants.MESS_NON_DATA,Optional.empty());
