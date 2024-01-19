@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -32,7 +33,7 @@ public class EnterprisesServiceImpl implements EnterprisesService {
     @Value("${token.api.sunat}")
     private String tokenSunat;
     @Value("${time.expiration.sunat.info}")
-    private String timeExpirationReniecInfo;
+    private int timeExpirationReniecInfo;
 
     public EnterprisesServiceImpl(EnterprisesRepository enterprisesRepository, EnterprisesValidations enterprisesValidations, DocumentsTypeRepository typeRepository, Util util, SunatClient sunatClient, RedisService redisService) {
         this.enterprisesRepository = enterprisesRepository;
@@ -43,14 +44,17 @@ public class EnterprisesServiceImpl implements EnterprisesService {
         this.redisService = redisService;
     }
 
-
     @Override
     public ResponseBase createEnterprise(RequestEnterprises requestEnterprises) {
         boolean validate = enterprisesValidations.validateInput(requestEnterprises);
         if(validate){
             EnterprisesEntity enterprises = getEntity(requestEnterprises);
-            enterprisesRepository.save(enterprises);
-            return new ResponseBase(Constants.CODE_SUCCESS,Constants.MESS_SUCCESS, Optional.of(enterprises));
+            if (enterprises != null){
+                enterprisesRepository.save(enterprises);
+                return new ResponseBase(Constants.CODE_SUCCESS,Constants.MESS_SUCCESS, Optional.of(enterprises));
+            } else {
+                return new ResponseBase(Constants.CODE_ERROR_DATA_NOT,Constants.MESS_NON_DATA_RENIEC, null);
+            }
         }else{
             return new ResponseBase(Constants.CODE_ERROR_DATA_INPUT,Constants.MESS_ERROR_DATA_NOT_VALID,null);
         }
@@ -76,9 +80,9 @@ public class EnterprisesServiceImpl implements EnterprisesService {
 
     @Override
     public ResponseBase findAllEnterprises() {
-        Optional allEnterprises = Optional.of(enterprisesRepository.findAll());
-        if(allEnterprises.isPresent()){
-            return new ResponseBase(Constants.CODE_SUCCESS,Constants.MESS_SUCCESS,allEnterprises);
+        List<EnterprisesEntity> enterprisesEntityList = enterprisesRepository.findAll();
+        if(!enterprisesEntityList.isEmpty()){
+            return new ResponseBase(Constants.CODE_SUCCESS,Constants.MESS_SUCCESS,Optional.of(enterprisesEntityList));
         }
         return new ResponseBase(Constants.CODE_ERROR_DATA_NOT,Constants.MESS_ZERO_ROWS,Optional.empty());
     }
@@ -114,7 +118,7 @@ public class EnterprisesServiceImpl implements EnterprisesService {
         }
     }
 
-    private EnterprisesEntity getEntity(RequestEnterprises requestEnterprises){
+    public EnterprisesEntity getEntity(RequestEnterprises requestEnterprises){
         EnterprisesEntity entity = new EnterprisesEntity();
         entity.setNumDocument(requestEnterprises.getNumDocument());
         ResponseSunat responseSunat = getExecutionSunat(requestEnterprises.getNumDocument());
